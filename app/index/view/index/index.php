@@ -194,7 +194,7 @@
             var categoryID=data.value;
             console.log(categoryID);
             $.ajax({
-                type:"POST",
+                type:"GET",
                 dataType:"json",
                 contentType: "application/json; charset=utf-8",
                 url:"/index/index/material",
@@ -202,10 +202,10 @@
                 success:function (material_res) {
                     $('[name="material"]').empty();
                     $('[name="material"]').prepend("<option value=''>请选择项目材质</option>");
-                    console.log(material_res.length);
-                    for(var i=0;i<material_res.length;i++){
-                        $('[name="material"]').append("<option value='"+material_res[i].meterial_id+"'>"+material_res[i].meterial_name+"</option>");
-                    };
+                    $.each(JSON.parse(material_res),function(index,obj){
+                        $('[name="material"]').append("<option value='"+obj['material_id']+"'>"+obj['material_name']+"</option>");
+                    });
+
                     form.render('select');
 
                 },
@@ -234,7 +234,7 @@
             area: '900px', //弹窗宽度
             url: '/index/index/upImage', //图片上传接口返回和（layui 的upload 模块）返回的JOSN一样
             done: function (url) { //上传完毕回调
-                console.log(url.src);
+                //console.log(url.src);
                 $("#productImg").val(url.src);
                 $("#productImgImg").attr('src', url.src);
             }

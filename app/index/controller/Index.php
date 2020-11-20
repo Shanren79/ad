@@ -80,13 +80,13 @@ class Index extends BaseController
     public  function material()
     {
         $material=new Material();
-        $categoryID=Request::post('categoryID');
+        $categoryID=Request::param('categoryID/d');
         //dump($categoryID);
         file_put_contents("postfile.txt",$categoryID);
         $material_res=$material->db()->where('category_id','=',$categoryID)->select()->toArray();
         //$material_res=$material->db()->where('category_id','=',1)->select()->toArray();
 
-        //file_put_contents("jsonfile",json_encode($material_res));
+        file_put_contents("jsonfile",json_encode($material_res));
         return json_encode($material_res);
     }
 
