@@ -61,7 +61,7 @@
     <div class="layui-body">
         <!-- 内容主体区域 -->
         <div style="padding: 15px;">
-            <form class="layui-form  layui-form-pane" method="post" enctype=multipart/form-data>
+            <form class="layui-form " method="post" enctype=multipart/form-data>
                 <!-- 提示：如果你不想用form，你可以换成div等任何一个普通元素 -->
                 <div class="layui-form-item">
                     <label class="layui-form-label">项目名称</label>
@@ -103,9 +103,8 @@
 
                 <div class="layui-form-item" pane="">
                     <label class="layui-form-label">项目工艺</label>
-                    <div class="layui-input-block">
-                        <input type="checkbox" name="like[write]" title="写作">
-                        <input type="checkbox" name="like[read]" title="阅读">
+                    <div class="layui-input-block" id="craft">
+
                     </div>
                 </div>
 
@@ -140,17 +139,21 @@
 
 
                 <div class="layui-form-item" pane="">
-                    <label class="layui-form-label">是否安装</label>
-                    <div class="layui-input-inline">
-                        <input type="checkbox" name="open" checked lay-skin="switch">
+                    <div class="layui-inline">
+                        <label class="layui-form-label">是否安装</label>
+                        <div class="layui-input-inline">
+                            <input type="checkbox" name="installit" lay-filter="installit" checked lay-skin="switch"
+                                   lay-text="是|否">
+                        </div>
                     </div>
-                    <div class="layui-inline" >
-                        <select name="installer" lay-filter="installer">
+                    <div class="layui-inline" id="installer" style="vertical-align: bottom">
+                        <select name="installer">
                             <option value="">请选择安装师傅</option>
                             {foreach $installer as $v}
                             <option value="{$v['installer_id']}">{$v['installer_name']}</option>
                             {/foreach}
                         </select>
+
                     </div>
 
                 </div>
@@ -181,29 +184,35 @@
 <script src="/src/layui/layui.js"></script>
 <script>
     //JavaScript代码区域
-    layui.use(['layer', 'form', 'element'], function () {
+
+
+    layui.config({
+        base: '/src/layui/cropper/' //layui自定义layui组件目录
+    }).use(['layer', 'form', 'element', 'croppers'], function () {
+
         var layer = layui.layer
             , form = layui.form
-            , element = layui.element;
+            , element = layui.element
+            , croppers = layui.croppers;
 
         $('.layui-nav-tree').on('click', 'li', function () {
             $(this).siblings('li').removeClass('layui-nav-itemed')
         });
 
-        form.on('select(category)',function (data) {
-            var categoryID=data.value;
+        form.on('select(category)', function (data) {
+            var categoryID = data.value;
             console.log(categoryID);
             $.ajax({
-                type:"GET",
-                dataType:"json",
-                contentType: "application/json; charset=utf-8",
-                url:"/index/index/material",
-                data:{categoryID:categoryID},
-                success:function (material_res) {
+                type: "POST",
+                dataType: "json",
+                //contentType:'application/x-www-form-urlencoded',
+                url: "/index/index/material",
+                data: {categoryID: categoryID},
+                success: function (material_res) {
                     $('[name="material"]').empty();
                     $('[name="material"]').prepend("<option value=''>请选择项目材质</option>");
-                    $.each(JSON.parse(material_res),function(index,obj){
-                        $('[name="material"]').append("<option value='"+obj['material_id']+"'>"+obj['material_name']+"</option>");
+                    $.each(material_res, function (index, obj) {
+                        $('[name="material"]').append("<option value='" + obj['material_id'] + "'>" + obj['material_name'] + "</option>");
                     });
 
                     form.render('select');
@@ -213,18 +222,40 @@
 
         });
 
+        form.on('switch(installit)', function (data) {
+            var checked = data.elem.checked;
+            console.log(checked);
+            $('#installer').toggle();
 
+        });
 
+        form.on('select(material)', function (data) {
+            var materialID = data.value;
+            //var like=$('[name="like[write]"]').attr("title");
 
-    });
+            console.log(materialID);
+            //console.log(like);
 
-    layui.config({
-        base: '/src/layui/cropper/' //layui自定义layui组件目录
-    }).use('croppers', function () {
-        var croppers = layui.croppers;
+            $.ajax({
+                type: "POST",
+                dataType: "json",
+                //contentType:'application/x-www-form-urlencoded',
+                url: "/index/index/craft",
+                data: {materialID: materialID},
+                success: function (craft_res) {
+                    $('#craft').empty();
+                    $.each(craft_res, function (index, obj) {
+                        console.log(obj['craft_name']);
+                        $('#craft').append("<input type='checkbox' name='"+obj['craft_id']+"' title='"+obj['craft_name']+"'>");
+                    });
+                    form.render('checkbox');
+                },
+            });
+
+        });
 
         //创建一个图片裁剪上传组件
-        var productImgCropper = croppers.render({
+        croppers.render({
             elem: '#productImgButton',
             defaultImg: '',// 默认图片 选填
             size: 2048,   // 大小限制 默认1024k 选填
